@@ -70,89 +70,89 @@ def run_gap_visualization():
     console.print(f"  c* floor   = {C_STAR}")
     console.print(f"  [green]MARGIN (GAP) = +{actual_gap:.4f}[/]")
 
-    # 2. PLOTTING (2-Panel Publication Ready)
-    console.print("\n[cyan]Generating publication figure...[/]")
+    # 2. PLOTTING (2-Panel Publication Ready) - HORIZONTAL LAYOUT
+    console.print("\n[cyan]Generating publication figure (horizontal layout)...[/]")
 
     plt.rcParams.update({
         'font.family': 'serif',
         'font.size': 11,
         'axes.labelsize': 12,
-        'axes.titlesize': 13,
+        'axes.titlesize': 12,
         'figure.dpi': 300,
     })
 
-    fig, ax = plt.subplots(2, 1, figsize=(12, 10))
+    # HORIZONTAL: 1 row, 2 columns
+    fig, ax = plt.subplots(1, 2, figsize=(16, 6))
 
     # --- PANEL A: The Learned Structure (Neural Kernel) ---
-    ax[0].plot(q3_d, neural_k, 'r-', linewidth=2.5,
-               label=r'Learned kernel: $\mu(d) = 1.20\cos(0.357d - 2.05)e^{-0.0024d}$')
+    ax[0].plot(q3_d, neural_k, 'r-', linewidth=2.5)
     ax[0].axhline(0, color='gray', linestyle='--', alpha=0.5)
     ax[0].fill_between(q3_d, 0, neural_k, where=(neural_k > 0), alpha=0.2, color='red')
     ax[0].fill_between(q3_d, 0, neural_k, where=(neural_k < 0), alpha=0.2, color='blue')
 
-    ax[0].set_title('(A) Learned Correlation Structure from Attention Logits', fontweight='bold')
-    ax[0].set_ylabel('Interaction Energy μ(d)')
-    ax[0].set_xlabel('Token Distance d')
-    ax[0].legend(loc='upper right', frameon=True)
+    ax[0].set_title('(A) Learned Correlation Kernel from Attention', fontweight='bold', fontsize=13)
+    ax[0].set_ylabel(r'$\mu(d)$', fontsize=12)
+    ax[0].set_xlabel('Token Distance d', fontsize=11)
     ax[0].grid(True, alpha=0.3)
     ax[0].set_xlim(0, 80)
+    ax[0].set_ylim(-1.3, 1.4)
 
-    # Add period annotation
-    ax[0].annotate('Period ≈ 17.6', xy=(18, 1.1), fontsize=10,
-                   bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+    # Formula annotation (bottom left, no overlap)
+    ax[0].text(0.03, 0.08, r'$\mu(d) = 1.20\cos(0.357d - 2.05)e^{-0.0024d}$',
+               transform=ax[0].transAxes, fontsize=10,
+               bbox=dict(boxstyle='round', facecolor='white', edgecolor='red', alpha=0.9))
+
+    # Period annotation (top left)
+    ax[0].text(0.03, 0.92, 'Period ≈ 17.6', transform=ax[0].transAxes, fontsize=10,
+               bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
 
     # --- PANEL B: The Spectral Gap (Q3 Symbol) ---
-    # Show FULL range so the curve is visible
-    ax[1].plot(thetas, symbol_values, 'b-', linewidth=2.5,
-               label=r'Toeplitz Symbol $P_A(\theta)$')
+    ax[1].plot(thetas, symbol_values, 'b-', linewidth=2.5)
 
     # RED LINE (The Floor)
-    ax[1].axhline(C_STAR, color='red', linewidth=3, linestyle='-',
-                  label=f'Archimedean Floor $c_* = {C_STAR}$')
+    ax[1].axhline(C_STAR, color='red', linewidth=3, linestyle='-')
 
     # Safe zone - fill between floor and curve
     ax[1].fill_between(thetas, C_STAR, symbol_values,
                        where=(symbol_values >= C_STAR),
-                       color='green', alpha=0.25, label='Safe Region (Q ≥ 0)')
+                       color='green', alpha=0.25)
 
     # Mark the minimum point
-    ax[1].plot(theta_min, min_symbol, 'ko', markersize=10, zorder=5)
+    ax[1].plot(theta_min, min_symbol, 'ko', markersize=8, zorder=5)
+
+    # Min annotation - simple, to the right
     ax[1].annotate(f'min = {min_symbol:.2f}',
                    xy=(theta_min, min_symbol),
-                   xytext=(theta_min + 0.15, min_symbol - 2),
-                   fontsize=11, fontweight='bold',
-                   arrowprops=dict(arrowstyle='->', color='black', lw=1.5))
-
-    # GAP annotation - vertical arrow from floor to minimum
-    ax[1].annotate('', xy=(theta_min - 0.25, C_STAR), xytext=(theta_min - 0.25, min_symbol),
-                   arrowprops=dict(arrowstyle='<->', color='darkgreen', lw=3))
-
-    ax[1].text(theta_min - 0.38, (C_STAR + min_symbol)/2,
-               f'GAP\n+{actual_gap:.2f}',
-               color='darkgreen', fontsize=12, fontweight='bold', ha='center',
-               bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.9))
+                   xytext=(theta_min + 0.12, min_symbol + 1.5),
+                   fontsize=10, fontweight='bold',
+                   arrowprops=dict(arrowstyle='->', color='black', lw=1.2))
 
     # Set ylim to show FULL curve
     ax[1].set_ylim(0, max(symbol_values) * 1.1)
     ax[1].set_xlim(-0.5, 0.5)
 
-    ax[1].set_title('(B) Spectral Gap: Symbol Always Above Floor', fontweight='bold')
-    ax[1].set_ylabel(r'$P_A(\theta)$')
-    ax[1].set_xlabel(r'Frequency $\theta$ (period-1 torus)')
-    ax[1].legend(loc='upper right', frameon=True)
+    ax[1].set_title('(B) Spectral Gap: Symbol Above Floor', fontweight='bold', fontsize=13)
+    ax[1].set_ylabel(r'$P_A(\theta)$', fontsize=12)
+    ax[1].set_xlabel(r'$\theta$ (period-1 torus)', fontsize=11)
     ax[1].grid(True, alpha=0.3)
 
-    # Add "PROOF" box
-    proof_text = (
-        f"Q3 Floor Theorem:\n"
-        f"min P_A = {min_symbol:.2f}\n"
-        f"c* = {C_STAR}\n"
-        f"=> P_A >= c* (OK)"
-    )
-    ax[1].text(0.30, max(symbol_values)*0.7, proof_text, fontsize=11,
-               bbox=dict(boxstyle='round', facecolor='lightyellow', edgecolor='orange', alpha=0.9))
+    # Clean legend (bottom right, inside plot area)
+    from matplotlib.patches import Patch
+    from matplotlib.lines import Line2D
+    legend_elements = [
+        Line2D([0], [0], color='blue', lw=2.5, label=r'$P_A(\theta)$'),
+        Line2D([0], [0], color='red', lw=3, label=f'Floor $c^* = {C_STAR}$'),
+        Patch(facecolor='green', alpha=0.25, label='Safe Region')
+    ]
+    ax[1].legend(handles=legend_elements, loc='upper left', frameon=True, fontsize=10)
 
-    plt.tight_layout()
+    # GAP box - outside plot, below
+    gap_text = f"GAP = min $P_A$ − $c^*$ = {min_symbol:.2f} − {C_STAR} = +{actual_gap:.2f}"
+    fig.text(0.75, 0.02, gap_text, fontsize=12, fontweight='bold',
+             ha='center', color='darkgreen',
+             bbox=dict(boxstyle='round', facecolor='lightgreen', edgecolor='darkgreen', alpha=0.9))
+
+    plt.tight_layout(rect=[0, 0.08, 1, 1])  # Leave space at bottom for GAP box
     plt.savefig('Q3_Spectral_Gap_Proof.png', dpi=300, bbox_inches='tight')
     console.print("[green]✓ Saved Q3_Spectral_Gap_Proof.png[/]")
 
