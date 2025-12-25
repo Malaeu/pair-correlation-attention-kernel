@@ -101,7 +101,8 @@ def run_gap_visualization():
     ax[0].annotate('Period ≈ 17.6', xy=(18, 1.1), fontsize=10,
                    bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
 
-    # --- PANEL B: The Spectral Gap Zoom (Q3 Symbol) ---
+    # --- PANEL B: The Spectral Gap (Q3 Symbol) ---
+    # Show FULL range so the curve is visible
     ax[1].plot(thetas, symbol_values, 'b-', linewidth=2.5,
                label=r'Toeplitz Symbol $P_A(\theta)$')
 
@@ -109,25 +110,33 @@ def run_gap_visualization():
     ax[1].axhline(C_STAR, color='red', linewidth=3, linestyle='-',
                   label=f'Archimedean Floor $c_* = {C_STAR}$')
 
-    # GAP annotation with arrow
-    ax[1].annotate('', xy=(theta_min, C_STAR), xytext=(theta_min, min_symbol),
-                   arrowprops=dict(arrowstyle='<->', color='darkgreen', lw=2.5))
-
-    ax[1].text(theta_min + 0.03, (C_STAR + min_symbol)/2,
-               f'GAP = +{actual_gap:.3f}',
-               color='darkgreen', fontsize=12, fontweight='bold',
-               bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
-
-    # Safe zone
+    # Safe zone - fill between floor and curve
     ax[1].fill_between(thetas, C_STAR, symbol_values,
                        where=(symbol_values >= C_STAR),
-                       color='green', alpha=0.15, label='Safe Region (Q ≥ 0)')
+                       color='green', alpha=0.25, label='Safe Region (Q ≥ 0)')
 
-    # Zoom to show gap clearly
-    ax[1].set_ylim(0.8, 2.5)
+    # Mark the minimum point
+    ax[1].plot(theta_min, min_symbol, 'ko', markersize=10, zorder=5)
+    ax[1].annotate(f'min = {min_symbol:.2f}',
+                   xy=(theta_min, min_symbol),
+                   xytext=(theta_min + 0.15, min_symbol - 2),
+                   fontsize=11, fontweight='bold',
+                   arrowprops=dict(arrowstyle='->', color='black', lw=1.5))
+
+    # GAP annotation - vertical arrow from floor to minimum
+    ax[1].annotate('', xy=(theta_min - 0.25, C_STAR), xytext=(theta_min - 0.25, min_symbol),
+                   arrowprops=dict(arrowstyle='<->', color='darkgreen', lw=3))
+
+    ax[1].text(theta_min - 0.38, (C_STAR + min_symbol)/2,
+               f'GAP\n+{actual_gap:.2f}',
+               color='darkgreen', fontsize=12, fontweight='bold', ha='center',
+               bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.9))
+
+    # Set ylim to show FULL curve
+    ax[1].set_ylim(0, max(symbol_values) * 1.1)
     ax[1].set_xlim(-0.5, 0.5)
 
-    ax[1].set_title('(B) Spectral Gap: Symbol Floor Guarantee', fontweight='bold')
+    ax[1].set_title('(B) Spectral Gap: Symbol Always Above Floor', fontweight='bold')
     ax[1].set_ylabel(r'$P_A(\theta)$')
     ax[1].set_xlabel(r'Frequency $\theta$ (period-1 torus)')
     ax[1].legend(loc='upper right', frameon=True)
@@ -136,11 +145,11 @@ def run_gap_visualization():
     # Add "PROOF" box
     proof_text = (
         f"Q3 Floor Theorem:\n"
-        f"$\\min_\\theta P_A(\\theta) = {min_symbol:.3f}$\n"
-        f"$c_* = {C_STAR}$\n"
-        f"$\\Rightarrow P_A \\geq c_* \\ \\checkmark$"
+        f"min P_A = {min_symbol:.2f}\n"
+        f"c* = {C_STAR}\n"
+        f"=> P_A >= c* (OK)"
     )
-    ax[1].text(0.25, 1.8, proof_text, fontsize=10,
+    ax[1].text(0.30, max(symbol_values)*0.7, proof_text, fontsize=11,
                bbox=dict(boxstyle='round', facecolor='lightyellow', edgecolor='orange', alpha=0.9))
 
     plt.tight_layout()
